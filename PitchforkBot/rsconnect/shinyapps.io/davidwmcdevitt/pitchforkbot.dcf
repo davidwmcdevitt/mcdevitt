@@ -1,0 +1,11 @@
+name: pitchforkbot
+title:
+username:
+account: davidwmcdevitt
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5316333
+bundleId: 5364652
+url: https://davidwmcdevitt.shinyapps.io/pitchforkbot/
+when: 1639365279.28336
+lastSyncTime: 1639365279.28336
