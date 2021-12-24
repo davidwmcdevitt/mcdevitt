@@ -27,6 +27,7 @@ set.seed(9999)
 teams<-c("BKN","MIL","GSW","LAL","CHA","IND","CHI","DET","BOS","NYK","TOR","WAS","CLE","MEM","HOU","MIN","NOP","PHI","ORL","SAS","OKC","UTA","DEN","PHX","POR","SAC","ATL","DAL","MIA","LAC")
 
 ui <- fluidPage(
+  h1("Hello! This is an NBA model built off of a random forest trained on the first 400 games of the NBA season.", align="left", style = "font-family: 'Times', serif; font-weight: 5px; font-size: 5; line-height: 1; color: #404040;"),
   selectInput('home_team', 'Home Team', teams),
   selectInput('away_team', 'Away Team', teams),
   actionButton("goButton", "Go!", class = "btn-success"),
@@ -34,6 +35,8 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
+  
+  show_modal_spinner()
   
   nba_box <<- read_csv("./www/nba_box.csv")
   
@@ -98,7 +101,7 @@ server <- function(input, output, session) {
   
   # Train Model
   model <- randomForest(as.factor(home_win) ~ ., data = trainset, ntree = 2000, mtry = 4, importance = TRUE)
-  
+  remove_modal_spinner()
   
   observeEvent(input$goButton, {
     show_modal_spinner() # show the modal window
@@ -201,6 +204,10 @@ server <- function(input, output, session) {
     winPct <- 100*(outcome[2,1] / 1000)
     
     output$text <- renderText(paste(home_team, " wins ", winPct, "% of matchups.", sep=""))
+    
+    if (home_team == away_team) {
+      output$text <- renderText(paste(home_team, " wins all matchups when they play themselves.....", sep=""))
+    }
     remove_modal_spinner() # remove it when done
     
   })

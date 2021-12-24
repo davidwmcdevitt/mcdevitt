@@ -6,6 +6,8 @@ library(extrafont)
 library(dplyr)
 library(knitr)
 library(shinybusy)
+library(rsconnect)
+library(rvest)
 
 Sys.setenv(SPOTIFY_CLIENT_ID = "0e6eb928dff94031aac094c8c65181f4")
 Sys.setenv(SPOTIFY_CLIENT_SECRET = "e452221800314c08a5d9e7739b276779")
@@ -13,7 +15,10 @@ Sys.setenv(SPOTIFY_CLIENT_SECRET = "e452221800314c08a5d9e7739b276779")
 access_token <- get_spotify_access_token()
 
 ui = basicPage(
-  textInput("url", "Enter the text to display below:"),
+  h1("Hello! This app will scrape Pitchfork reviews for every album in one of your Spotify playlists (that it can find) and give you a Pitchfork rating of your playlist! Go ahead and try it!", align="left", style = "font-family: 'Times', serif; font-weight: 5px; font-size: 5; line-height: 1; color: #404040;"),
+  h2("Give it a try! Go to one of your playlists, Click the '...' button, go to share, and click 'Copy Link to Playlist.'", align="left", style = "font-family: 'Times', serif; font-weight: 5px; font-size: 5; line-height: 1; color: #404040;"),
+  h3("Note: Unfortunately, Spotify generated playlists such as Spotify Wrapped or Blend can't be shared by URL, so the app won't be able to find those.", align="left", style = "font-family: 'Times', serif; font-weight: 5px; font-size: 5; line-height: 1; color: #404040;"),
+  textInput("url", "Enter a Spotify playlist URL"),
   actionButton("goButton", "Go!", class = "btn-success"),
   verbatimTextOutput("verb")
 )
@@ -39,10 +44,12 @@ server = function(input, output) {
     
     len <- ceiling(temp$tracks$total / 100)
     
-    for (l in 2:len) {
-      offset <- l*100 - 100 
-      temp <- get_playlist_tracks(uri, offset = offset)
-      playlists <- rbind(playlists, temp)
+    if (nrow(playlists) > 100) {
+      for (l in 2:len) {
+        offset <- l*100 - 100 
+        temp <- get_playlist_tracks(uri, offset = offset)
+        playlists <- rbind(playlists, temp)
+      }
     }
     
     tracks <- subset(playlists, select = c("track.name","track.artists","track.album.name"))
@@ -125,7 +132,7 @@ server = function(input, output) {
     } 
     content <- unique(content)
     mean <- round(mean(as.numeric(content$review_score)),digits = 1)
-    text <- paste("Pitchfork gives this playlist a", mean, sep = " ")
+    text <- paste("Pitchfork gives this playlist a ", mean, ". ", nrow(content),"/",nrow(playlists), " reviews found.",sep = "")
     
     
     remove_modal_spinner() # remove it when done
